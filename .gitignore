@@ -4,16 +4,8 @@
 .RData
 .Ruserdata
 .DS_Store
+Rplots.pdf
+renv/
 
-# renv: the lockfile and the activation script are versioned, the library is not
-renv/library/
-renv/local/
-renv/cellar/
-renv/lock/
-renv/python/
-renv/sandbox/
-renv/staging/
-
-# products of atacora_DA_run.R, regenerated with seed 20260927
+# the saved draws, written by R_model/atacora_DA_model.R
 outputs/
-RESULTS.md
