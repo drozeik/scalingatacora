@@ -1233,6 +1233,8 @@ Das ganze Skript:
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
+if (!file.exists("outputs/v9/simulation_results.rds"))
+  stop("Run atacora_DA_run.R first (about 25 minutes); it writes outputs/v9/simulation_results.rds.", call. = FALSE)
 simulation_results <- readRDS("outputs/v9/simulation_results.rds")
 options <- c("sq", "out", "up_std", "up_inc", "deep")
 nb <- function(groups, setting = "V1", prefix = "NB")
