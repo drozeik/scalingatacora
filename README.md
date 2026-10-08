@@ -45,6 +45,14 @@ fairness_screen(nb, p = c(a = 0.7, b = 0.3),
 
 ## Reproduce
 
+The case analysis requires `decisionSupport` and `pls` (for the sensitivity analysis). Install them once in R; their required dependencies are installed automatically:
+
+```r
+install.packages(c("decisionSupport", "pls"), repos = "https://cloud.r-project.org")
+```
+
+The checked run used R 4.6.0, `decisionSupport` 1.115 and `pls` 2.9-0.
+
 From the project folder (in RStudio: open `scalingatacora.Rproj`):
 
 ```r
