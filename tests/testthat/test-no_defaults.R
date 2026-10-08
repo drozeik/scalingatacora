@@ -1,7 +1,7 @@
 # No function knows the groups, the options or the rules, and none makes a
 # valuation choice on the caller's behalf: every argument that encodes such a
 # choice has no default. One deliberate exception: voi_partition(differentiated
-# = FALSE), one decision for all unless the caller says otherwise (FUNCTIONS.md, design rule 2).
+# = FALSE), one decision for all unless the caller says otherwise (FUNCTIONS.md, "Shared arguments").
 # voi_partition(profiles = NULL) is not a valuation: it allows every profile,
 # as before v8, and only matters once the caller has chosen differentiated = TRUE.
 # w_atkinson(offset = 0) is the documented convention of the index (v8 order, 3a).
