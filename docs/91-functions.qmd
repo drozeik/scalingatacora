@@ -1,0 +1,19 @@
+---
+title: "Appendix 1: Valuation functions"
+author: "Daniel Rozeik"
+lang: en-GB
+from: markdown-blank_before_header
+filters:
+  - gfm-math.lua
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\},fontsize=\small}
+---
+
+{{< include ../FUNCTIONS.md >}}
