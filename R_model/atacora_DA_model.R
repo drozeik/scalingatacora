@@ -6,25 +6,25 @@
 #             fonio plan (up), public awareness (deep) -- or none (status quo)
 #  Level    : one commune (Boukoumbe or Natitingou). Values per producer household of the commune,
 #             aggregated from persons over households to the commune, never across communes
-#  Inputs   : data/estimates/atacora_DA_inputs_v8.csv, one row per input with its source and status
+#  Inputs   : data/atacora_DA_inputs.csv, one row per input with its source and status
 #             (L literature, W workshop/Dataverse, T transferred, P prior set by me)
 #  Structure: make_variables() -> decision_model() -> SIMULATION -> VALUE OF INFORMATION -> SENSITIVITY.
-#  The axis tests T0-T6 are in atacora_DA_axes_full.R; atacora_DA_axes.R is the short screen of the five axes.
+#  R_model/atacora_DA_axes.R reads the saved draws and screens the five axes. Run from the project root.
 #  ------------------------------------------------------------------------
 
-# Model structure and abbreviations: see figures/atacora_model_v9_core.png
+# Model structure and abbreviations: see figures/atacora_model_core.png
 
 
 library(decisionSupport)
 
-# In this model 'p' is the grain price. In the valuation functions of R/, 'p' means group shares.
+# In this model 'p' is the grain price. In the valuation functions of R_functions/, 'p' means group shares.
 
 make_variables <- function(est, n = 1){
   x <- random(rho = est, n = n)                                                     # draw one row from the estimate
   for (i in colnames(x)) assign(i, as.numeric(x[1, i]), envir = .GlobalEnv)         # push each variable to the global environment
 }
 
-make_variables(estimate_read_csv("data/estimates/atacora_DA_inputs_v8.csv"))        # Read the estimate table (ranges + distributions) and expose one draw globally.
+make_variables(estimate_read_csv("data/atacora_DA_inputs.csv"))                     # Read the estimate table (ranges + distributions) and expose one draw globally.
 #  MODEL FUNCTION
 decision_model <- function(){
 
@@ -331,7 +331,7 @@ SEED    <- 20260927                                                             
 N_DRAWS <- 10000                                                                    # Monte Carlo draws
 set.seed(SEED)
 simulation_results <- mcSimulation(
-  estimate          = estimate_read_csv("data/estimates/atacora_DA_inputs_v8.csv"),
+  estimate          = estimate_read_csv("data/atacora_DA_inputs.csv"),
   model_function    = decision_model,
   numberOfModelRuns = N_DRAWS,
   functionSyntax    = "plainNames"
@@ -389,7 +389,7 @@ plot_evpi(evpi_main, dec_main)
 
 
 # SENSITIVITY ANALYSIS (PLS -> VIP Scores)
-input_table <- read.csv("data/estimates/atacora_DA_inputs_v8.csv")
+input_table <- read.csv("data/atacora_DA_inputs.csv")
 
 sim_T0 <- simulation_results; sim_T0$y <- setNames(data.frame(decisive("G", "V0")), dec_T0)          # the decisive comparison as the result
 pls_T0 <- plsr.mcSimulation(object     = sim_T0,
