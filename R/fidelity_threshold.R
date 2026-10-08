@@ -1,76 +1,66 @@
-#' Fidelity threshold: how much of an option's effect must arrive
+#' Smallest implemented share whose value reaches the best unchanged alternative
 #'
-#' A switching value in the sense of decisionSupport; fidelity here means the
-#' share of an option's effect that arrives among those reached.
-#'
-#' The effect of one option against the reference state (`0` = no change) is
-#' scaled by a share \eqn{f}, every other option is left unchanged, and the
-#' rule `W` is applied inside every draw and averaged (ex post), as in
-#' [voi_partition()]:
-#' \deqn{V_d(f) = E_\theta W(f \cdot NB(d, \theta)).}
-#' The threshold \eqn{f^*_d} is the smallest \eqn{f \in [0, 1]} at which option
-#' \eqn{d} is still (or would be) recommended, i.e. at which \eqn{V_d(f)}
-#' reaches the best expected value among the other options at full effect.
-#' For the recommended option this reads: it stays recommended as long as at
-#' least \eqn{f^*} of its effect arrives. For another option \eqn{f^*} exists
-#' only if some share of at most 1 would put it ahead; otherwise it is `NA`.
-#'
-#' The search assumes that \eqn{V_d(f)} does not fall as \eqn{f} rises for an
-#' option whose full effect is worth at least as much as the best other
-#' option. This holds for every rule with \eqn{W(f x) = f W(x)} for
-#' \eqn{f \ge 0}, e.g. [w_utilitarian()], [w_maximin()] and [w_prioritarian()]
-#' with a transform that is linear on each side of zero; for these
-#' \eqn{f^* = \max(\text{others}) / V_d(1)}.
-#'
-#' @inheritParams voi_partition
-#' @param tol Tolerance of the search for \eqn{f^*}.
-#' @return An object of class `fidelity_threshold`: a data frame with one row
-#'   per option, the columns `option`, `value` (expected value under `W` at
-#'   full effect), `best_other` (the best expected value among the other
-#'   options), `recommended` (`TRUE` for the option with the highest value;
-#'   the first one on ties) and `f_star`.
+#' V_d(f) = mean_s W(f * NB(d,theta_s)); f* = min{f in [0,1]: V_d(f) >= target}.
+#' A tie meets the threshold even when first-option tie breaking reports a rival.
+#' The numerical search requires V_d(f) to be finite, continuous and concave on
+#' [0,1]. This includes utilitarian, maximin, the loss-linear prioritarian rule
+#' with loss multiplier >= 1, and Atkinson within its positive domain. For a
+#' user-supplied rule this is a caller contract, not something data can prove.
+#' The strict floor is a feasibility condition; use fairness_screen() instead.
+#' @inheritParams welfare_draws
+#' @param tol Positive absolute tolerance in f, default 1e-9.
+#' @return Class fidelity_threshold/data.frame: option, value at f=1, best_other,
+#'   recommended (at f=1; exact ties go to the first), f_star. NA means the
+#'   option never reaches its target on [0,1]. If only an intermediate interval
+#'   is feasible, f_star is its LOWER endpoint; it is not a guarantee for all
+#'   larger f. The full-effect value column makes that limitation visible.
 #' @examples
-#' set.seed(1)
-#' nb <- list(a = cbind(sq = 0, x = rnorm(500, 6, 4), y = rnorm(500, 1.5, 1)),
-#'            b = cbind(sq = 0, x = rnorm(500, 0, 4), y = rnorm(500, 3, 1)))
-#' fidelity_threshold(nb, p = c(0.5, 0.5), W = w_utilitarian())
+#' nb <- list(a = cbind(sq = 0, x = c(6, 2), y = c(1, 3)))
+#' fidelity_threshold(nb, 1, w_utilitarian())
 #' @export
 fidelity_threshold <- function(nb_list, p, W, tol = 1e-9) {
-  if (missing(p))
-    stop_missing("p", "group shares are a choice of reporting unit.")
-  if (missing(W))
-    stop_missing("W", "the valuation rule, e.g. w_utilitarian().")
-  check_rule(W)
-  if (!is.numeric(tol) || length(tol) != 1L || !(tol > 0))
-    stop("`tol` must be a single positive number.", call. = FALSE)
-  obj <- prepare_nb(nb_list, p)
-
-  value <- colMeans(welfare_matrix(obj, W))
-  if (anyNA(value))
-    stop("The value of some option is undefined (NA) under `W`.", call. = FALSE)
-  value_at <- function(d, f) {                   # V_d(f): option d's effect scaled by f
-    scaled <- obj
-    scaled$u[, d, ] <- f * obj$u[, d, ]
-    mean(welfare_post(scaled, W, const_sel(obj, d)))
-  }
-
-  f_star <- vapply(seq_len(obj$D), function(d) {
-    target <- if (obj$D > 1L) max(value[-d]) else -Inf
-    if (value[[d]] < target) return(NA_real_)    # not ahead even at full effect
-    if (value_at(d, 0) >= target) return(0)      # ahead whatever share arrives
-    lo <- 0; hi <- 1                             # V_d(lo) < target <= V_d(hi)
-    while (hi - lo > tol) {
-      mid <- (lo + hi) / 2
-      if (value_at(d, mid) >= target) hi <- mid else lo <- mid
+  if (missing(p)) stop_missing("p", "state the group shares.")
+  if (missing(W)) stop_missing("W", "state the valuation rule.")
+  check_scalar(tol, "`tol`", .Machine$double.xmin)
+  nb_list <- check_nb(nb_list)
+  p <- resolve_p(p, names(nb_list))
+  value <- colMeans(welfare_draws(nb_list, p, W))
+  if (any(!is.finite(value)))
+    stop("Fidelity requires finite values; check the rule domain. Report floors separately.", call. = FALSE)
+  other <- vapply(seq_along(value), function(d)
+    if (length(value) == 1L) -Inf else max(value[-d]), numeric(1))
+  threshold <- numeric(length(value))
+  for (d in seq_along(value)) {
+    groups <- do.call(cbind, lapply(nb_list, function(x) x[, d]))
+    value_at <- function(f) {
+      result <- mean(rule_by_draw(f * groups, p, W))  # scale NB, apply W, THEN average
+      if (!is.finite(result)) stop("W(f * NB) is undefined for f = ", f, ".", call. = FALSE)
+      result
     }
-    hi
-  }, numeric(1))
-
-  out <- data.frame(option = obj$options, value = as.numeric(value),
-                    best_other = vapply(seq_len(obj$D), function(d)
-                      if (obj$D > 1L) max(value[-d]) else NA_real_, numeric(1)),
-                    recommended = seq_len(obj$D) == which_max1(value),
-                    f_star = f_star, row.names = NULL, stringsAsFactors = FALSE)
-  class(out) <- c("fidelity_threshold", "data.frame")
-  out
+    if (value_at(0) >= other[d]) {        # the minimum of [0,1] already satisfies the inequality
+      threshold[d] <- 0
+      next
+    }
+    hi <- 1
+    if (value[d] < other[d]) {
+      # Mixed positive/negative effects can give an interior maximum under
+      # Atkinson. 'Loses at f=1' therefore does NOT prove 'never reaches target'.
+      peak <- stats::optimize(value_at, c(0, 1), maximum = TRUE, tol = tol)
+      if (peak$objective < other[d]) {
+        threshold[d] <- NA_real_
+        next
+      }
+      hi <- peak$maximum
+    }
+    lo <- 0                              # V(lo) < target <= V(hi)
+    while (hi - lo > tol) {              # concavity makes the feasible set an interval
+      mid <- (lo + hi) / 2
+      if (value_at(mid) >= other[d]) hi <- mid else lo <- mid
+    }
+    threshold[d] <- hi                   # upper bracket: smallest feasible f to tolerance
+  }
+  other[other == -Inf] <- NA_real_
+  structure(data.frame(option = names(value), value = as.numeric(value),
+    best_other = other, recommended = seq_along(value) == which.max(value),
+    f_star = threshold, row.names = NULL), class = c("fidelity_threshold", "data.frame"))
 }
