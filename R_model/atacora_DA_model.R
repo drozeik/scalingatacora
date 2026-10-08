@@ -71,7 +71,7 @@ decision_model <- function(){
   #    own   share of the grain eaten at home
   #    op    who receives the operator margin, c(G, H, O) sums to 1
   #    paid  0 = type self (the household's women hull everything), 1 = type hire (paid hullers do)
-  #    Check: Qm + Qh = Q and grain = eaten + sold in every year (tests/testthat/test-model.R).
+  #    Check: Qm + Qh = Q and grain = eaten + sold in every year.
 
   process_fonio <- function(m, own, op, paid){
     Qm    <- m * Q                                                                  # P1 kg paddy hulled by machine
@@ -168,7 +168,7 @@ decision_model <- function(){
   #    "Saved" and "freed" hours are status quo minus option; cash and kg are option minus status quo.
   #    Households -> commune: the two types mixed with their shares. Programme costs (machines, plan,
   #    campaign) lie outside the community boundary and are not modelled.
-  #    Check: every difference of sq to itself is exactly 0; transfers cancel in the commune (tests).
+  #    Check: every difference of sq to itself is exactly 0; transfers cancel in the commune.
 
   accounts <- function(x, b){                                                       # one option x against the status quo b, one household type
     list(G_sold = (x$grain - b$grain) - (x$eaten - b$eaten),                        # S1 kg/yr more sold (grain gained minus kg moved to the plate)
@@ -248,7 +248,7 @@ decision_model <- function(){
   #    NB_comm  = NB_G + K * NB_H + NB_O                                    the commune, per producer household
   #    NB_Gself, NB_Ghire, NBc_self, NBc_hire: the household account and the commune value of one household
   #    type, with the H and O flows that type causes (value of information). Check: NB_comm of up_std equals that of up_inc in
-  #    every draw; kappa = 1 gives NB_G(deep) = 0 in every draw (tests).
+  #    every draw; kappa = 1 gives NB_G(deep) = 0 in every draw.
 
   K <- hullers_per_producer_hh                                                      # paid hullers per producer household (const 0.25) [P]
 
