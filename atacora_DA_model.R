@@ -1,19 +1,23 @@
 #  ------------------------------------------------------------------------
-#  DECISION ANALYSIS - Scaling fonio processing in the Atacora (North Benin), v8
+#  DECISION ANALYSIS - Scaling fonio processing in the Atacora (North Benin), v9
 #  Case model of the review article "Scaling as a valuation decision" (Circular Agricultural Systems)
+#  Author   : Daniel Rozeik, University of Bonn
 #  Decision : which workshop option to scale -- processing equipment (out), advocacy for a national
 #             fonio plan (up), public awareness (deep) -- or none (status quo)
 #  Level    : one commune (Boukoumbe or Natitingou). Values per producer household of the commune,
 #             aggregated from persons over households to the commune, never across communes
-#  Stand    : v8, 28 September 2026 (Daniel Rozeik, Uni Bonn; built with Claude Code); v9 the same day:
-#             the status quo levels in section 9, the historical reference as a greyed-out line in block (0)
 #  Inputs   : data/estimates/atacora_DA_inputs_v8.csv, one row per input with its source and status
-#             (L literature, W workshop/Dataverse, T transferred, B ask BOLDER, P prior set by us)
-#  Built like the Kyrgyz walnut cooperative model from a decision analysis course (not included):
-#  make_variables() -> decision_model() -> SIMULATION -> VALUE OF INFORMATION -> SENSITIVITY.
-#  The axis tests T0-T6 are in atacora_DA_axes.R, the figures in atacora_DA_figures.R.
+#             (L literature, W workshop/Dataverse, T transferred, P prior set by me)
+#  Structure: make_variables() -> decision_model() -> SIMULATION -> VALUE OF INFORMATION -> SENSITIVITY.
+#  The axis tests T0-T6 are in atacora_DA_axes_full.R; atacora_DA_axes.R is the short screen of the five axes.
 #  ------------------------------------------------------------------------
+
+# Model structure and abbreviations: see figures/atacora_model_v9_core.png
+
+
 library(decisionSupport)
+
+# In this model 'p' is the grain price. In the valuation functions of R/, 'p' means group shares.
 
 make_variables <- function(est, n = 1){
   x <- random(rho = est, n = n)                                                     # draw one row from the estimate
@@ -27,13 +31,13 @@ decision_model <- function(){
 
   # 1. TIME HORIZON
 
-  n_years  <- round(horizon_years)                                                  # appraisal length in years (const = 10 in the CSV) [P]
-  time     <- 1:n_years                                                             # year index used by the plan lag (U1) and the campaign decay (D1)
-  disc_pct <- discount_rate * 100                                                   # decisionSupport's discount() wants a percentage [P]
+  n_years  <- round(horizon_years)                                                  # appraisal length in years (const = 10 in the CSV)
+  time     <- 1:n_years                                                             # year index used by the plan lag (U1) and the campaign decay
+  disc_pct <- discount_rate * 100                                                   # decisionSupport's discount() wants a percentage
 
 
 
-  # 2. SHARED CHANCE EVENTS  (drawn ONCE, reused by every option => fair compare)
+  # 2. SHARED CHANCE EVENTS  (drawn ONCE, reused by every option => fair comparison)
   #    Machine downtime (O2): in a breakdown year part of the machine throughput is lost and hulled
   #    by hand again. The same years hit out and up, the two options with machines. Technical fidelity.
 
@@ -45,7 +49,7 @@ decision_model <- function(){
 
   # 3. FONIO SUPPLY  (shared physical input, constant over the horizon)
   #    One producer household of the commune. The area stays constant: the preference-informed
-  #    reference works through the value of freed time (section 7), not through an area path.
+  #    reference works through the value of freed time (section 7), not through an area path (increased / decreased area).
 
   Q <- fonio_area_hh_ha * fonio_yield_kg_ha                                         # Q1 kg paddy per producer household and year [P ha x L kg/ha]
 
@@ -54,17 +58,18 @@ decision_model <- function(){
   # 4. SHARED PRICES AND UNIT COSTS  (drawn once, used by all options)
 
   p      <- retail_price_hulled_fcfa_kg * producer_price_share                      # M1 FCFA per kg hulled grain realised by the household [W x P]
-  f_h    <- hand_service_price_fcfa_kg                                              # M2 FCFA per kg paddy paid for hand hulling [B]
-  f_m    <- f_h * machine_cost_ratio_to_manual                                      # M3 machine fee, FCFA per kg paddy [B x L]
+  f_h    <- hand_service_price_fcfa_kg                                              # M2 FCFA per kg paddy paid for hand hulling [P]
+  f_m    <- f_h * machine_cost_ratio_to_manual                                      # M3 machine fee, FCFA per kg paddy [P x L]
   margin <- operator_margin_share * f_m                                             # M4 FCFA per kg paddy left to the operator; the rest is running cost [P]
-  wage_h <- f_h * hand_hull_rate_kg_h                                               # FCFA per hour of hand hulling, the paid rate [B x L kg/h]
+  wage_h <- f_h * hand_hull_rate_kg_h                                               # FCFA per hour of hand hulling, the paid rate [P x L kg/h]
 
 
 
   # 5. PROCESSING CHAIN  (mass balance, per household type)
   #    Returns kg, hours and the cash of the three accounts of one household type, per year.
-  #    m     machine share of the paddy (vector over years)    own   share of the grain eaten at home
-  #    op    who receives the operator margin, c(G, H, O), sums to 1
+  #    m     machine share of the paddy (vector over years)    
+  #    own   share of the grain eaten at home
+  #    op    who receives the operator margin, c(G, H, O) sums to 1
   #    paid  0 = type self (the household's women hull everything), 1 = type hire (paid hullers do)
   #    Check: Qm + Qh = Q and grain = eaten + sold in every year (tests/testthat/test-model.R).
 
@@ -98,7 +103,7 @@ decision_model <- function(){
 
   m_sq    <- rep(0, n_years)                                                        # no machine
   own_sq  <- rep(own_consumption_share_behavioural, n_years)                        # S1 today's share of the grain eaten at home [P]
-  ## own_sq <- rep(own_consumption_share_behavioural_alt, n_years)                  # >>> HISTORICAL REFERENCE (Ballogou et al. 2014, survey 2011) [L]; swap to switch on <<<
+  ## own_sq <- rep(own_consumption_share_behavioural_alt, n_years)                  # >>> HISTORICAL REFERENCE (Ballogou et al. 2014, survey 2011) [L]; <<<
   op_none <- c(G = 0, H = 0, O = 0)                                                 # no operator margin
   sq_self <- process_fonio(m_sq, own_sq, op_none, paid = 0)                         # type self, for reference see section 5. PROCESSING CHAIN
   sq_hire <- process_fonio(m_sq, own_sq, op_none, paid = 1)                         # type hire
@@ -109,10 +114,10 @@ decision_model <- function(){
 
   #  A. COSTS            : machine fee f_m on the machine-hulled paddy (M3); buying the machines lies outside the community boundary
   #  B. BENEFITS         : hand-hulling hours saved (L1, L2) and the recovery difference machine - hand (P3)
-  #  C. RISKS / FIDELITY : downtime years (O2), the technical fidelity of the machines
+  #  C. RISKS / FIDELITY : downtime years (O2), representing the technical fidelity of the machines
   #  The units scale with the households served, so m is the same for both types, also when out reaches one type only (T5).
 
-  cap_share_out <- out_units * volume_processed_t_yr * 1000 / (n_producer_hh * Q)   # O1 capacity as share of the zone's paddy [P units x L t/yr / (B hh x Q1 kg)]
+  cap_share_out <- out_units * volume_processed_t_yr * 1000 / (n_producer_hh * Q)    # O1 capacity as share of the area's paddy [P units x L t/yr / (B hh x Q1 kg)]
   m_out         <- min(1, cap_share_out) * avail_t                                   # O1 O2 machine share per year: capacity-bound, minus downtime
   op_out        <- c(G = 0, H = 0, O = 1)                                            # the margin stays with the private operator
   out_self      <- process_fonio(m_out, own_sq, op_out, paid = 0)                    # type self
@@ -125,7 +130,7 @@ decision_model <- function(){
   #  A. COSTS            : machine fee f_m (M3); the plan's own cost lies outside the community boundary
   #  B. BENEFITS         : hours saved, recovery (P3), the operator margin to the group the rule names (U3)
   #  C. RISKS / FIDELITY : lag (U1), implementation share (U2), downtime (O2), enforcement of the inclusive rule (U3)
-  #  That the plan co-finances machines is an assumption by decision (Daniel, 24.09.; BOLDER request 14).
+  #  That the plan co-finances machines is an assumption by decision.
   #  The two rules differ only in who receives the operator margin (H2, T4).
 
   plan_share_c <- min(1, max(0, plan_machine_share))                                 # U2 share of producer households the plan equips; norm 0/0.30 censored to [0, 1] [P]
@@ -187,6 +192,7 @@ decision_model <- function(){
                  up_std = accounts(up_std_hire, sq_hire),
                  up_inc = accounts(up_inc_hire, sq_hire),
                  deep   = accounts(deep_hire,   sq_hire))
+  
   mix <- function(a, b){                                                            # households -> commune: the types mixed with their shares [P]
     out <- Map(function(u, v) (1 - hiring_hh_share) * u + hiring_hh_share * v, a, b)
     out$op <- a$op                                                                  # the rule is the same for both types
@@ -208,7 +214,7 @@ decision_model <- function(){
   #          hour of off-farm work (B). Observed behaviour is not a preference; T2 makes the difference visible.
 
   kappa     <- 1                                                                    # V1/PREF: a kg eaten at home is valued at the price it would have fetched (market-price convention)
-  ## kappa  <- 1.5                                                                  # >>> ALTERNATIVE O2 (Daniel 27.09.): declared nutrition premium; swap the two lines to switch on <<<
+  ## kappa  <- 1.5                                                                  # >>> ALTERNATIVE O2: declared nutrition premium; swap the two lines to switch on <<<
   theta     <- min(1, max(0, time_value_ratio_hullers))                             # V1 value of a freed huller hour / wage_h; norm 0/0.8 censored to [0, 1] [P]
   w_off_rel <- opportunity_wage_fcfa_h / wage_h                                     # PREF value of an off-farm hour / wage_h [B / (B x L)]
 
@@ -216,6 +222,9 @@ decision_model <- function(){
                    V1   = c(omega_W = 1,         omega_H = theta,     kappa = kappa),   # reference "behaviour" (main run)
                    PREF = c(omega_W = w_off_rel, omega_H = w_off_rel, kappa = kappa))   # reference "preference"
 
+  # Equation A11 (eq-money, FUNCTIONS.md) uses already discounted y, t and c. decisionSupport's
+  # discount(v, rate, TRUE) computes sum(v[t] / (1 + rate/100)^(t-1)):
+  # the first model year is undiscounted. Do not silently change the exponent to t.
   npv  <- function(v) discount(v, disc_pct, calculate_NPV = TRUE)                   # discounted sum over the horizon (year 1 undiscounted)
   comp <- function(a) c(                                                            # discounted components of one option, FCFA
     G_cash = p * npv(a$G_sold) - npv(a$G_fee) + a$op[["G"]] * npv(a$marg),          # dG_cash      sales - fees + margin, producer household
@@ -232,7 +241,7 @@ decision_model <- function(){
 
 
   # 8. DECISIONS  (option vs status quo, per account and setting; > 0 => the option is better for that account)
-  #    NB_G     = dG_cash + omega_W * dG_time_val + kappa * dG_kg_val        producer household
+  #    NB_G     = dG_cash + omega_W * dG_time_val + kappa * dG_kg_val       producer household
   #    NB_Wg    = omega_W * dG_time_val                                     women in producer households, per woman
   #    NB_H     = (dH_cash + omega_H * dH_time_val) / K                     per huller, K = hullers per producer household
   #    NB_O     = dO_cash                                                   the private operator
@@ -243,6 +252,13 @@ decision_model <- function(){
 
   K <- hullers_per_producer_hh                                                      # paid hullers per producer household (const 0.25) [P]
 
+  # Equation A11 (eq-money): y_G + omega_W*w_h*t_G + kappa*p_f*c_G.
+  # comp() above has ALREADY multiplied discounted hours by wage_h and kg by p.
+  # Hence G_time is w_h*t_G and G_kg is p_f*c_G; multiplying those prices again
+  # here would double-value them. [[ ]] extracts one named scalar from a vector.
+  # The three terms below are all FCFA. Raw kg and hours are reported separately.
+  # Equation A12 (eq-boundary): G + K*H + O. H is divided by K to report per huller;
+  # the boundary sum multiplies it by K again to report per producer household.
   value <- function(cc, w) c(                                                      # the accounts of one option under one setting w
     G    = cc[["G_cash"]] + w[["omega_W"]] * cc[["G_time"]] + w[["kappa"]] * cc[["G_kg"]],  # NB_G FCFA per producer household
     Wg   = w[["omega_W"]] * cc[["G_time"]],                                         # NB_Wg FCFA per woman in a producer household
@@ -308,8 +324,10 @@ decision_model <- function(){
                                hiring_hh_share * sq_hire$H_cash) / K)               #        per huller ---
   ))
 }
+
+
 #  SIMULATION
-SEED    <- 20260927                                                                 # fixed seed of the v8 and v9 runs (RESULTS.md)
+SEED    <- 20260927                                                                 # fixed seed of v9 runs
 N_DRAWS <- 10000                                                                    # Monte Carlo draws
 set.seed(SEED)
 simulation_results <- mcSimulation(
@@ -321,20 +339,43 @@ simulation_results <- mcSimulation(
 #  VALUE OF INFORMATION  (EVPI) on the decisive comparisons
 #  The decisive comparison of a reading is the option ahead against the runner-up (by mean): once for the
 #  conventional reading (producer household, money only, V0 = T0) and once for the main run (commune, V1).
-OPTIONS <- c("sq", "out", "up_std", "up_inc", "deep")                                # the options, as in decision_model()
-ahead <- function(account, setting){                                                # the option ahead and the runner-up, by mean;
-  v <- sapply(OPTIONS, function(o) simulation_results$y[[paste("NB", account, o, setting, sep = "_")]])
-  m <- sort(colMeans(v), decreasing = TRUE)                                         # an option equal to the one ahead in every draw
-  tied <- sapply(names(m), function(o) all(v[, o] == v[, names(m)[1]]))             # is a tie, not a runner-up (deep = sq under kappa = 1,
-  c(names(m)[1], names(m)[!tied][1])                                                # up_std = up_inc for the commune)
+
+
+OPTIONS <- c("sq", "out", "up_std", "up_inc", "deep")            # the options, as in decision_model()
+y       <- simulation_results$y                                   # model outputs: one row per draw, one column per output
+
+# Net benefit of every option for one account under one setting: a table, draws x options
+nb_table <- function(account, setting){
+  nb <- y[paste("NB", account, OPTIONS, setting, sep = "_")]      # e.g. NB_G_sq_V0, NB_G_out_V0, ...
+  setNames(nb, OPTIONS)                                           # short column names: sq, out, ...
 }
-decisive <- function(account, setting){                                             # NB of the option ahead minus NB of the runner-up, per draw
-  pr <- ahead(account, setting)
-  simulation_results$y[[paste("NB", account, pr[1], setting, sep = "_")]] -
-    simulation_results$y[[paste("NB", account, pr[2], setting, sep = "_")]]
+
+# The option ahead and its runner-up, by mean net benefit
+ahead <- function(account, setting){
+  nb        <- nb_table(account, setting)
+  ranking   <- names(sort(colMeans(nb), decreasing = TRUE))             # options from best to worst
+  best      <- ranking[1]
+  same      <- sapply(ranking, function(o) all(nb[[o]] == nb[[best]]))  # equal to the best in every draw: a tie, not a rival
+  runner_up <- ranking[!same][1]                                        # the first option that really differs
+  c(best = best, runner_up = runner_up)
 }
-dec_T0   <- paste("G_V0", paste(ahead("G", "V0"), collapse = "_vs_"), sep = "_")         # e.g. G_V0_up_std_vs_sq
-dec_main <- paste("comm_V1", paste(ahead("comm", "V1"), collapse = "_vs_"), sep = "_")   # e.g. comm_V1_up_std_vs_out
+
+# Net benefit of the option ahead minus that of the runner-up, per draw
+decisive <- function(account, setting){
+  nb   <- nb_table(account, setting)
+  pair <- ahead(account, setting)
+  nb[[pair[["best"]]]] - nb[[pair[["runner_up"]]]]
+}
+
+# The name of that comparison, e.g. G_V0_up_std_vs_sq
+dec_name <- function(account, setting){
+  pair <- ahead(account, setting)
+  paste0(account, "_", setting, "_", pair[["best"]], "_vs_", pair[["runner_up"]])
+}
+
+dec_T0   <- dec_name("G", "V0")                                   # conventional reading: producer household, money only
+dec_main <- dec_name("comm", "V1")                                # main run: commune, behavioural reference
+
 
 mc_table <- data.frame(simulation_results$x, decisive("G", "V0"))
 names(mc_table)[ncol(mc_table)] <- dec_T0
@@ -345,6 +386,8 @@ mc_table <- data.frame(simulation_results$x, decisive("comm", "V1"))
 names(mc_table)[ncol(mc_table)] <- dec_main
 evpi_main <- multi_EVPI(mc = mc_table, first_out_var = dec_main)
 plot_evpi(evpi_main, dec_main)
+
+
 # SENSITIVITY ANALYSIS (PLS -> VIP Scores)
 input_table <- read.csv("data/estimates/atacora_DA_inputs_v8.csv")
 

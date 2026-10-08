@@ -1,6 +1,7 @@
 #  ------------------------------------------------------------------------
 #  RUN - Atacora case model v9, the one entry point:
-#  tests -> model (10 000 draws, EVPI, PLS) -> axis tests T0-T6 and H3 -> key findings -> figures
+#  tests -> model (10 000 draws, EVPI, PLS) -> full case analysis (T0-T6 and H3, atacora_DA_axes_full.R)
+#  -> short screen of the five axes (atacora_DA_axes.R) -> key findings -> figures
 #  From the project root:  Rscript --vanilla atacora_DA_run.R
 #  ------------------------------------------------------------------------
 local_lib <- "renv/library/macos/R-4.6/aarch64-apple-darwin23"                     # the project's library, without renv's activation
@@ -10,9 +11,10 @@ quiet <- function(expr) withCallingHandlers(suppressMessages(expr), warning = fu
   if (grepl("Fitted value of|deviation of calculated", conditionMessage(w))) invokeRestart("muffleWarning"))  # fitting; known and harmless
 
 test_summary <- source("analysis/00_run_tests.R")$value                             # 1. tests: nothing is written unless all are green
-invisible(capture.output(quiet(source("atacora_DA_model.R"))))                      # 2. model: simulation, EVPI and PLS of the decisive comparisons
-quiet(source("atacora_DA_axes.R"))                                                  # 3. axis tests -> outputs/v9/T*.csv, axes_results.rds
-saveRDS(simulation_results, "outputs/v9/simulation_results.rds")                    #    the draws, for the figures (not versioned)
+invisible(capture.output(quiet(source("atacora_DA_model.R"))))                      # 2. model: simulation, EVPI and PLS (VIP) of the decisive comparisons
+quiet(source("atacora_DA_axes_full.R"))                                             # 3. full case analysis -> outputs/v9/T*.csv, axes_results.rds
+saveRDS(simulation_results, "outputs/v9/simulation_results.rds")                    #    the draws, for the short screen and the figures
+invisible(capture.output(local(source("atacora_DA_axes.R", local = TRUE))))          #    smoke test: the short screen runs on the saved draws
 source("analysis/write_key_findings.R")                                             # 4. key findings -> outputs/v9/key_findings.md
 source("atacora_DA_figures.R")                                                      # 5. figures -> outputs/v9/figures/ (F1, F2, supplement/)
 source("analysis/make_walkthrough.R")                                               #    docs/model_walkthrough.md: decision_model() at the medians
