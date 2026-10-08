@@ -68,4 +68,6 @@ One row per uncertain input: distribution, lower and upper bound, label, descrip
 
 ## Author and licence
 
-Daniel Rozeik, University of Bonn. A licence and a citable archived version will be added when the repository is made public.
+Daniel Rozeik, University of Bonn. 
+
+(Add a license and citable archived version when publishing)
