@@ -1,4 +1,4 @@
-# FIVE AXES + FIDELITY. Run from the project root; results are in 'review'.
+# FIVE AXES + FIDELITY. Run from the project root; results are in 'screen'.
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
@@ -69,10 +69,10 @@ heterogeneity_ratio <- voh_index(heterogeneity)
 
 # ACROSS DIRECTIONS: scalar effect fidelity; component-specific delivery needs a rerun.
 fidelity <- fidelity_threshold(nb("comm"), p = 1, W = w_utilitarian())
-review <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
+screen <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
   K = K, p = p, atkinson_offset = offset, rules = names(rules)), boundary = boundary,
   references = references, units = units, hidden = hidden, fairness = fairness,
   designs = designs, floor_by_group = floor_by_group, floor = floor,
   information = information, heterogeneity = heterogeneity,
   heterogeneity_ratio = heterogeneity_ratio, fidelity = fidelity)
-print(review$fairness)
+print(screen$fairness)
