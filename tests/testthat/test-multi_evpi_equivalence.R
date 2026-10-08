@@ -1,7 +1,7 @@
 skip_if_not_installed("decisionSupport")
 skip_if_not_installed("fANCOVA")
 
-# What decisionSupport::multi_EVPI() computes -- see FUNCTIONS.md, multi_EVPI().
+# What decisionSupport::multi_EVPI() computes -- see FUNCTIONS.md, Step 11.
 #
 # empirical_EVPI(mc, test_var, out_var) sorts the draws by the input variable,
 # fits a loess smoother of the output on that input to obtain E[out | input],
