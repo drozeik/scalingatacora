@@ -2,7 +2,7 @@
 # the shift table, one card with six points per test; outputs/v9/shift_map.csv for figure S8; the v9 block of
 # RESULTS.md. Every number comes from the run: outputs/v9/axes_results.rds and the draws in simulation_results.
 # Wording is conditional on the numbers, so a new run keeps it right.
-# Called by atacora_DA_run.R after atacora_DA_axes.R. Standalone (after a run):
+# Called by atacora_DA_run.R after atacora_DA_axes_full.R. Standalone (after a run):
 #   Rscript analysis/write_key_findings.R
 
 local({

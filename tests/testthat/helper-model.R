@@ -5,7 +5,7 @@
 layer2_files <- "workshop_layer.R"                  # the case file of R/, outside the generality scan
 
 model_file <- file.path(.proj_root, "atacora_DA_model.R")
-axes_file  <- file.path(.proj_root, "atacora_DA_axes.R")
+axes_file  <- file.path(.proj_root, "atacora_DA_axes_full.R")
 input_file <- file.path(.proj_root, "data", "estimates", "atacora_DA_inputs_v8.csv")
 
 # the expressions of a script up to (not including) the first one whose text starts with `stop_at`
