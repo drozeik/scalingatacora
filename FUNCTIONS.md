@@ -1218,18 +1218,18 @@ It gives no recommendation for Atacora: every result holds under the assumptions
 
 ```r
 source("atacora_DA_axes.R")
-review$fairness                # which rule prefers which option
-review$designs                 # up_std against up_inc, not against the status quo
-review$references$outcomes     # every group under both reference conditions
-review$floor                   # which options leave no group worse off in any draw
-review$hidden$out              # aggregate gain while a group loses
-review$heterogeneity           # differentiated decisions for household types
+screen$fairness                # which rule prefers which option
+screen$designs                 # up_std against up_inc, not against the status quo
+screen$references$outcomes     # every group under both reference conditions
+screen$floor                   # which options leave no group worse off in any draw
+screen$hidden$out              # aggregate gain while a group loses
+screen$heterogeneity           # differentiated decisions for household types
 ```
 
 The whole script:
 
 ```r
-# FIVE AXES + FIDELITY. Run from the project root; results are in 'review'.
+# FIVE AXES + FIDELITY. Run from the project root; results are in 'screen'.
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
@@ -1300,13 +1300,13 @@ heterogeneity_ratio <- voh_index(heterogeneity)
 
 # ACROSS DIRECTIONS: scalar effect fidelity; component-specific delivery needs a rerun.
 fidelity <- fidelity_threshold(nb("comm"), p = 1, W = w_utilitarian())
-review <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
+screen <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
   K = K, p = p, atkinson_offset = offset, rules = names(rules)), boundary = boundary,
   references = references, units = units, hidden = hidden, fairness = fairness,
   designs = designs, floor_by_group = floor_by_group, floor = floor,
   information = information, heterogeneity = heterogeneity,
   heterogeneity_ratio = heterogeneity_ratio, fidelity = fidelity)
-print(review$fairness)
+print(screen$fairness)
 ```
 
 **Settings.** `K` is the number of paid hullers per producer household; it is fixed in the input table.
