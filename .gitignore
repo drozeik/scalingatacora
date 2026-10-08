@@ -1,11 +1,13 @@
 # R and RStudio
 .Rproj.user/
+/scalingatacora.Rproj
 .Rhistory
 .RData
 .Ruserdata
 .DS_Store
 Rplots.pdf
 renv/
+/renv.lock
 
 # the saved draws, written by R_model/atacora_DA_model.R
 outputs/
