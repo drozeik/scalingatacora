@@ -9,7 +9,7 @@ raw_data_dir <- function() file.path(.proj_root, "data", "raw", "whitney2025",
                                      "data")
 
 # Test-only wrapper. The library functions deliberately have NO defaults for
-# p or W (FUNCTIONS.md, design rule 2). The wrapper fixes the conventional choice so that
+# p or W (FUNCTIONS.md, "Shared arguments"). The wrapper fixes the conventional choice so that
 # tests which are *about* something else stay short. Tests about the choices
 # themselves call the functions directly.
 vp <- function(nb, p, W = w_utilitarian(), ...) voi_partition(nb, p, W, ...)
