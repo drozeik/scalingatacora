@@ -1,10 +1,10 @@
-# FIVE AXES + FIDELITY. Run from the project root; results are in 'screen'.
+# FIVE AXES, AN OUTCOME BEYOND MONEY, FIDELITY. Run from the project root; results are in 'screen'.
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
-if (!file.exists("outputs/v9/simulation_results.rds"))
-  stop("Run atacora_DA_run.R first (about 25 minutes); it writes outputs/v9/simulation_results.rds.", call. = FALSE)
-simulation_results <- readRDS("outputs/v9/simulation_results.rds")
+if (!file.exists("outputs/simulation_results.rds"))
+  stop("Run R_model/atacora_DA_model.R first; it writes outputs/simulation_results.rds.", call. = FALSE)
+simulation_results <- readRDS("outputs/simulation_results.rds")
 options <- c("sq", "out", "up_std", "up_inc", "deep")
 nb <- function(groups, setting = "V1", prefix = "NB")
   nb_from_mc(simulation_results, paste0(prefix, "_{group}_{option}_", setting), groups, options)
@@ -47,6 +47,7 @@ names(hidden) <- options[-1L]
 people <- nb(c("G", "H"))
 fairness <- fairness_screen(people, p, rules)
 designs <- fairness_screen(lapply(people, function(x) x[, c("up_std", "up_inc")]), p, rules)
+# The designs differ only in who gets the operator margin: utilitarian totals are equal, its option is a tie.
 floor_by_group <- nb_summary(nb(c("G", "Wg", "H")))[, c("unit", "option", "p_loss")]
 floor <- data.frame(option = options, admissible = vapply(options, function(d)
   all(floor_by_group$p_loss[floor_by_group$option == d] == 0), logical(1)))
@@ -67,12 +68,23 @@ heterogeneity <- voi_partition(types, p = c(1, 1), W = function(nb, p) sum(nb),
   differentiated = TRUE, profiles = allowed)
 heterogeneity_ratio <- voh_index(heterogeneity)
 
-# ACROSS DIRECTIONS: scalar effect fidelity; component-specific delivery needs a rerun.
+# BEYOND MONEY (H3): kg of fonio eaten at home over ten years, change against the status quo, per household.
+eaten <- list(kg = sapply(options, function(d) simulation_results$y[[paste0("Kg_eaten_", d)]]))
+eaten_share <- colMeans(eaten$kg) / mean(simulation_results$y$Lvl_kg_eaten_sq)   # change as a share of today's level
+eaten_voi <- voi_partition(eaten, p = 1, W = w_utilitarian())                    # option ahead on this aim; EVPI in kg
+# An explicit rule across aims: a kg eaten at home valued at 1.5 times its price (V1 values it at 1).
+kg_value <- sapply(options, function(d) simulation_results$y[[paste0("C_G_kg_", d)]])   # FCFA, at the price
+kappa_15 <- voi_partition(list(G = nb("G")$G + 0.5 * kg_value), p = 1, W = w_utilitarian())   # option ahead, p_ahead
+
+# ACROSS DIRECTIONS: fidelity_threshold() scales the whole effect of each option for the commune.
 fidelity <- fidelity_threshold(nb("comm"), p = 1, W = w_utilitarian())
+# The rule alone: up_std is up_inc without its rule (machines in full); the model is linear in between.
+rule_threshold <- -mean(people$H[, "up_std"]) / diff(colMeans(people$H[, c("up_std", "up_inc")]))[[1]]  # H mean = 0
 screen <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
   K = K, p = p, atkinson_offset = offset, rules = names(rules)), boundary = boundary,
   references = references, units = units, hidden = hidden, fairness = fairness,
   designs = designs, floor_by_group = floor_by_group, floor = floor,
   information = information, heterogeneity = heterogeneity,
-  heterogeneity_ratio = heterogeneity_ratio, fidelity = fidelity)
+  heterogeneity_ratio = heterogeneity_ratio, eaten = eaten, eaten_share = eaten_share,
+  eaten_voi = eaten_voi, kappa_15 = kappa_15, fidelity = fidelity, rule_threshold = rule_threshold)
 print(screen$fairness)

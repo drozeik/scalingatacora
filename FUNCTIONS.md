@@ -338,7 +338,7 @@ print(x, digits = 4, ...)
 ```
 
 `digits` is the number of decimal places shown; `print()` computes nothing new and changes no stored number.
-The other helpers in `R/`, such as the input checks in `R/utils.R`, are not called directly.
+The other helpers in `R_functions/`, such as the input checks in `R_functions/utils.R`, are not called directly.
 `mcSimulation()` and `multi_EVPI()` belong to decisionSupport, not to these 16 functions.
 
 <span id="step-by-step"></span>
@@ -354,8 +354,7 @@ To follow along, load the functions once in the project folder:
 source("load.R")
 ```
 
-[`examples/step_by_step.R`](examples/step_by_step.R) contains all eleven steps as a script to run.
-The excerpts from `R/` show the lines that carry a function; internal names in them such as `nb_list` or `rule_by_draw` are not called directly.
+The excerpts from `R_functions/` show the lines that carry a function; internal names in them such as `nb_list` or `rule_by_draw` are not called directly.
 
 <span id="example-data"></span>
 ### The three things you need to know
@@ -421,9 +420,9 @@ Different units do not become comparable just because they sit in one list.
 <span id="core"></span>
 ## The computational core: value first, then average
 
-`R/welfare_draws.R` contains the two lines that carry it:
+`R_functions/welfare_draws.R` contains the two lines that carry it:
 
-<!-- from R/welfare_draws.R -->
+<!-- from R_functions/welfare_draws.R -->
 ```r
 # Each column of 'groups' is NB_g(d, theta_1), ..., NB_g(d, theta_S).
 groups <- do.call(cbind, lapply(nb_list, function(x) x[, d]))
@@ -493,7 +492,7 @@ The minimum of the group means would instead be `min(6, 0) = 0`; that answers a 
 <span id="rules"></span>
 ## Rules: one small interface
 
-The five rules in `R/welfare_functions.R` each return a function `(nb, p)`.
+The five rules in `R_functions/welfare_functions.R` each return a function `(nb, p)`.
 
 <!-- eq-rules -->
 **Equation A2 (`eq-rules`).** In words: the utilitarian rule takes the weighted mean of the group values, maximin takes the smallest group value, and the prioritarian rule counts losses with the factor $\lambda$ before averaging.
@@ -581,9 +580,9 @@ The Atacora screen therefore reports the floor as a separate admissibility check
 <span id="information"></span>
 ## Value of information: why the order of mean and maximum matters
 
-`R/voi_partition.R` contains the lines that carry it:
+`R_functions/voi_partition.R` contains the lines that carry it:
 
-<!-- from R/voi_partition.R -->
+<!-- from R_functions/voi_partition.R -->
 ```r
 criterion <- colMeans(value)            # V(d) = (1/S) sum_s U[s,d]
 d <- best_option(criterion)             # d* = argmax_d V(d)
@@ -696,9 +695,9 @@ It holds for all five supplied rules.
 <span id="hidden-losses"></span>
 ## Hidden losses and comparing rules
 
-`marginalisation_count()` in `R/fairness_screen.R` counts with three lines:
+`marginalisation_count()` in `R_functions/fairness_screen.R` counts with three lines:
 
-<!-- from R/fairness_screen.R -->
+<!-- from R_functions/fairness_screen.R -->
 ```r
 below <- do.call(cbind, lapply(nb_list, function(x) x[, d] < 0))
 gain <- value[, d] > 0                   # W(NB(d, theta_s)) > 0
@@ -763,9 +762,9 @@ Where the model actually delivers an exact zero, this needs explaining when read
 <span id="units"></span>
 ## Reporting units
 
-In `R/reporting_units.R` a reporting unit is a weighted sum of whole matrices:
+In `R_functions/reporting_units.R` a reporting unit is a weighted sum of whole matrices:
 
-<!-- from R/reporting_units.R -->
+<!-- from R_functions/reporting_units.R -->
 ```r
 terms <- Map(function(x, coefficient) coefficient * x,
               nb_list[names(coefficients)], coefficients)
@@ -826,7 +825,7 @@ Neither `6 + 1` nor a money value of the hour is computed; to value an outcome, 
 <span id="references"></span>
 ## Comparing references
 
-`baseline_pair()` in `R/baseline_pair.R` receives a small function that returns the matching net benefits for each reference, and calls it exactly twice.
+`baseline_pair()` in `R_functions/baseline_pair.R` receives a small function that returns the matching net benefits for each reference, and calls it exactly twice.
 It invents no reference value and does not subtract a reference a second time.
 
 <!-- eq-reference -->
@@ -873,7 +872,7 @@ Means, values of information or losses can still change.
 <span id="fidelity"></span>
 ## Fidelity: how much of the effect has to arrive
 
-`fidelity_threshold()` in `R/fidelity_threshold.R` scales only the option being checked by a share f; the alternatives keep their full effect.
+`fidelity_threshold()` in `R_functions/fidelity_threshold.R` scales only the option being checked by a share f; the alternatives keep their full effect.
 `mean(rule_by_draw(f * groups, p, W))` is the value of the option at share f.
 
 <!-- eq-fidelity -->
@@ -935,7 +934,7 @@ This is a statement about the inequality, not a recommendation to implement a me
 Likewise, an Atkinson threshold at an interior maximum does not promise that all larger shares are enough.
 
 This function scales the whole net effect of an option.
-Anyone who wants to vary single components of a measure separately needs a model run of their own, in the Atacora case in `atacora_DA_axes_full.R`.
+Anyone who wants to vary single components of a measure separately needs a model run of their own, unless the model is linear in that component: then its two ends are enough, as for the inclusive rule in the Atacora screen (`rule_threshold`).
 
 **For rules of your own.** The search requires $V_d(f)$ to be finite, continuous and concave between 0 and 1.
 This holds for the utilitarian rule, maximin, the prioritarian rule with a loss factor of at least 1, and Atkinson within its positive range.
@@ -945,7 +944,7 @@ For a transformation of your own you have to check this yourself; the floor with
 <span id="decisionsupport"></span>
 ## Connecting to decisionSupport
 
-`nb_from_mc()` in `R/nb_from_mc.R` reads `mc$y` as `mcSimulation()` returns it.
+`nb_from_mc()` in `R_functions/nb_from_mc.R` reads `mc$y` as `mcSimulation()` returns it.
 A column pattern, the groups and the options are enough.
 `decisionSupport::multi_EVPI()` measures a different value of information from `voi_partition()`; [Step 11](#step-11) shows the difference.
 
@@ -984,7 +983,7 @@ It asks what perfect knowledge of the uncertain inputs would be worth for this d
 \mathrm{EVPI}_j = \mathbb{E}_{\theta_j}\Big[\max\big(\mathbb{E}(\Delta \mid \theta_j),\,0\big)\Big] - \max\big(\mathbb{E}\,\Delta,\,0\big).
 ```
 
-$\Delta$ is the difference between the two options per draw, in `examples/partial_information.R` the column `comparison`.
+$\Delta$ is the difference between the two options per draw, in `R_model/atacora_DA_partial_evpi.R` the column `comparison`.
 $\theta_j$ is input $j$; `multi_EVPI()` computes this value for every input.
 
 Our example shows how much the option set matters:
@@ -1001,7 +1000,7 @@ Only `dY` creates draws in which you would want to decide differently.
 An EVPI of zero for one pair of options is therefore compatible with a positive EVPI for all options.
 Every value of information comes with its outcome, its option set and the scope of the information.
 
-[`examples/partial_information.R`](examples/partial_information.R) connects the two: it forms an explicitly named pair of options, calls `multi_EVPI()` and reports how often an omitted option would be better.
+[`R_model/atacora_DA_partial_evpi.R`](R_model/atacora_DA_partial_evpi.R) connects the two: it forms an explicitly named pair of options, calls `multi_EVPI()` and reports how often an omitted option would be better.
 
 <span id="full-run"></span>
 ## Complete run
@@ -1210,32 +1209,34 @@ This has used all 16 functions.
 <span id="atacora"></span>
 ## From four draws to a real model: the Atacora screen
 
-`atacora_DA_axes.R` applies the same functions to the Atacora model (`atacora_DA_model.R`).
+`R_model/atacora_DA_axes.R` applies the same functions to the Atacora model (`R_model/atacora_DA_model.R`).
 For fonio processing in Atacora, northern Benin, the model compares five options: `sq` change nothing, `out` processing equipment, `up_std` and `up_inc` a national fonio plan with two rules for the operator margin, and `deep` a nutrition campaign.
 There are accounts for the producer household (G), the women in it (Wg), paid hullers (H), the machine operator (O) and the commune (`comm`).
-The screen reads the 10,000 saved draws that `atacora_DA_run.R` writes, has fewer than 100 lines and writes no files.
+The screen reads the 10,000 saved draws that `R_model/atacora_DA_model.R` writes, has fewer than 100 lines and writes no files.
 It gives no recommendation for Atacora: every result holds under the assumptions of the input table.
 
 ```r
-source("atacora_DA_axes.R")
+source("R_model/atacora_DA_axes.R")
 screen$fairness                # which rule prefers which option
 screen$designs                 # up_std against up_inc, not against the status quo
 screen$references$outcomes     # every group under both reference conditions
 screen$floor                   # which options leave no group worse off in any draw
 screen$hidden$out              # aggregate gain while a group loses
 screen$heterogeneity           # differentiated decisions for household types
+screen$eaten_voi               # which option leads on kg eaten at home; EVPI in kg
+screen$rule_threshold          # enforcement of the inclusive rule at which hullers break even on average
 ```
 
 The whole script:
 
 ```r
-# FIVE AXES + FIDELITY. Run from the project root; results are in 'screen'.
+# FIVE AXES, AN OUTCOME BEYOND MONEY, FIDELITY. Run from the project root; results are in 'screen'.
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
-if (!file.exists("outputs/v9/simulation_results.rds"))
-  stop("Run atacora_DA_run.R first (about 25 minutes); it writes outputs/v9/simulation_results.rds.", call. = FALSE)
-simulation_results <- readRDS("outputs/v9/simulation_results.rds")
+if (!file.exists("outputs/simulation_results.rds"))
+  stop("Run R_model/atacora_DA_model.R first; it writes outputs/simulation_results.rds.", call. = FALSE)
+simulation_results <- readRDS("outputs/simulation_results.rds")
 options <- c("sq", "out", "up_std", "up_inc", "deep")
 nb <- function(groups, setting = "V1", prefix = "NB")
   nb_from_mc(simulation_results, paste0(prefix, "_{group}_{option}_", setting), groups, options)
@@ -1278,6 +1279,7 @@ names(hidden) <- options[-1L]
 people <- nb(c("G", "H"))
 fairness <- fairness_screen(people, p, rules)
 designs <- fairness_screen(lapply(people, function(x) x[, c("up_std", "up_inc")]), p, rules)
+# The designs differ only in who gets the operator margin: utilitarian totals are equal, its option is a tie.
 floor_by_group <- nb_summary(nb(c("G", "Wg", "H")))[, c("unit", "option", "p_loss")]
 floor <- data.frame(option = options, admissible = vapply(options, function(d)
   all(floor_by_group$p_loss[floor_by_group$option == d] == 0), logical(1)))
@@ -1298,14 +1300,25 @@ heterogeneity <- voi_partition(types, p = c(1, 1), W = function(nb, p) sum(nb),
   differentiated = TRUE, profiles = allowed)
 heterogeneity_ratio <- voh_index(heterogeneity)
 
-# ACROSS DIRECTIONS: scalar effect fidelity; component-specific delivery needs a rerun.
+# BEYOND MONEY (H3): kg of fonio eaten at home over ten years, change against the status quo, per household.
+eaten <- list(kg = sapply(options, function(d) simulation_results$y[[paste0("Kg_eaten_", d)]]))
+eaten_share <- colMeans(eaten$kg) / mean(simulation_results$y$Lvl_kg_eaten_sq)   # change as a share of today's level
+eaten_voi <- voi_partition(eaten, p = 1, W = w_utilitarian())                    # option ahead on this aim; EVPI in kg
+# An explicit rule across aims: a kg eaten at home valued at 1.5 times its price (V1 values it at 1).
+kg_value <- sapply(options, function(d) simulation_results$y[[paste0("C_G_kg_", d)]])   # FCFA, at the price
+kappa_15 <- voi_partition(list(G = nb("G")$G + 0.5 * kg_value), p = 1, W = w_utilitarian())   # option ahead, p_ahead
+
+# ACROSS DIRECTIONS: fidelity_threshold() scales the whole effect of each option for the commune.
 fidelity <- fidelity_threshold(nb("comm"), p = 1, W = w_utilitarian())
+# The rule alone: up_std is up_inc without its rule (machines in full); the model is linear in between.
+rule_threshold <- -mean(people$H[, "up_std"]) / diff(colMeans(people$H[, c("up_std", "up_inc")]))[[1]]  # H mean = 0
 screen <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
   K = K, p = p, atkinson_offset = offset, rules = names(rules)), boundary = boundary,
   references = references, units = units, hidden = hidden, fairness = fairness,
   designs = designs, floor_by_group = floor_by_group, floor = floor,
   information = information, heterogeneity = heterogeneity,
-  heterogeneity_ratio = heterogeneity_ratio, fidelity = fidelity)
+  heterogeneity_ratio = heterogeneity_ratio, eaten = eaten, eaten_share = eaten_share,
+  eaten_voi = eaten_voi, kappa_15 = kappa_15, fidelity = fidelity, rule_threshold = rule_threshold)
 print(screen$fairness)
 ```
 
@@ -1345,10 +1358,16 @@ Both come from the same draws; they differ in how the freed time is valued.
 
 **4. Rule.** Six rules for all options and separately for the two designs of the plan.
 Here the floor is an admissibility check: an option is admissible if no group loses in any draw.
+The two designs differ only in who receives the operator margin, so the utilitarian rule gives both the same value; the option it shows in `designs` is the first of a tie decided by rounding, not a preference.
 
 **5. Value of information.** The EVPI is given per actor (Wg, H, G, commune) under V0, V1 and PREF.
 Differentiated decisions exist only for household types (`self`, `hire`), not for members of one household; the allowed profiles are in `allowed`.
 The contributions of the types are already weighted with their share in each draw; the sum rule therefore reports FCFA per producer household.
 
+**Beyond money.** The kilograms of fonio eaten at home stay an outcome of their own next to money.
+`voi_partition()` with the utilitarian rule names the option that leads on this aim and gives the value of information in kilograms; `eaten_share` sets the change against today's level.
+`kappa_15` adds an explicit rule across the aims: a kilogram eaten at home counts 1.5 times its price instead of once.
+
 **Across all directions: fidelity.** `fidelity_threshold()` scales the whole net effect of each option for the commune.
-Varying the components of a measure separately needs a new model run.
+The inclusive rule is the exception: the model is linear in its enforcement, and the standard design is the plan without it.
+`rule_threshold` therefore finds, from the two designs alone, the enforcement at which the hullers' mean outcome reaches zero.

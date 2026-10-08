@@ -1,7 +1,6 @@
 # Optional research-priority analysis with decisionSupport::multi_EVPI().
-# Run after source('atacora_DA_axes.R'); may take several minutes.
+# Run after source("R_model/atacora_DA_axes.R"); may take several minutes.
 # This answers a BINARY comparison, not the full five-option EVPI.
-.libPaths(c("renv/library/macos/R-4.6/aarch64-apple-darwin23", .libPaths()))
 value <- welfare_draws(nb(c("G", "H")), p, rules$utilitarian)
 ranking <- order(colMeans(value), decreasing = TRUE)
 best <- ranking[1L]

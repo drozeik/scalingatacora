@@ -338,7 +338,7 @@ print(x, digits = 4, ...)
 ```
 
 `digits` ist die Zahl der gezeigten Nachkommastellen; `print()` rechnet nichts neu und verändert keine gespeicherte Zahl.
-Die übrigen Hilfsfunktionen in `R/`, etwa die Eingabeprüfungen in `R/utils.R`, ruft man nicht selbst auf.
+Die übrigen Hilfsfunktionen in `R_functions/`, etwa die Eingabeprüfungen in `R_functions/utils.R`, ruft man nicht selbst auf.
 `mcSimulation()` und `multi_EVPI()` gehören zu decisionSupport, nicht zu diesen 16 Funktionen.
 
 <span id="step-by-step"></span>
@@ -354,8 +354,7 @@ Zum Mitrechnen lädt man die Funktionen einmal im Projektordner:
 source("load.R")
 ```
 
-[`examples/step_by_step.R`](examples/step_by_step.R) enthält alle elf Schritte als Skript zum Ausführen.
-Die Ausschnitte aus `R/` zeigen die tragenden Zeilen einer Funktion; interne Namen darin wie `nb_list` oder `rule_by_draw` ruft man nicht selbst auf.
+Die Ausschnitte aus `R_functions/` zeigen die tragenden Zeilen einer Funktion; interne Namen darin wie `nb_list` oder `rule_by_draw` ruft man nicht selbst auf.
 
 <span id="example-data"></span>
 ### Die drei Dinge, die man kennen muss
@@ -421,9 +420,9 @@ Verschiedene Einheiten werden nicht vergleichbar, nur weil sie in einer Liste st
 <span id="core"></span>
 ## Der Rechenkern: erst bewerten, dann mitteln
 
-In `R/welfare_draws.R` stehen die zwei tragenden Zeilen:
+In `R_functions/welfare_draws.R` stehen die zwei tragenden Zeilen:
 
-<!-- from R/welfare_draws.R -->
+<!-- from R_functions/welfare_draws.R -->
 ```r
 # Each column of 'groups' is NB_g(d, theta_1), ..., NB_g(d, theta_S).
 groups <- do.call(cbind, lapply(nb_list, function(x) x[, d]))
@@ -493,7 +492,7 @@ Das Minimum der Gruppenmittel wäre dagegen `min(6, 0) = 0`; das beantwortet ein
 <span id="rules"></span>
 ## Regeln: dieselbe kleine Schnittstelle
 
-Die fünf Regeln in `R/welfare_functions.R` liefern jeweils eine Funktion `(nb, p)`.
+Die fünf Regeln in `R_functions/welfare_functions.R` liefern jeweils eine Funktion `(nb, p)`.
 
 <!-- eq-rules -->
 **Gleichung A2 (`eq-rules`).** In Worten: Die utilitaristische Regel bildet das gewichtete Mittel der Gruppenwerte, Maximin nimmt den kleinsten Gruppenwert, und die prioritäre Regel lässt Verluste mit dem Faktor $\lambda$ zählen, bevor sie mittelt.
@@ -581,9 +580,9 @@ Im Atacora-Screen steht die Mindestgrenze deshalb als eigene Zulässigkeitsprüf
 <span id="information"></span>
 ## Informationswert: warum die Reihenfolge von Mittel und Maximum zählt
 
-In `R/voi_partition.R` stehen die tragenden Zeilen:
+In `R_functions/voi_partition.R` stehen die tragenden Zeilen:
 
-<!-- from R/voi_partition.R -->
+<!-- from R_functions/voi_partition.R -->
 ```r
 criterion <- colMeans(value)            # V(d) = (1/S) sum_s U[s,d]
 d <- best_option(criterion)             # d* = argmax_d V(d)
@@ -696,9 +695,9 @@ Das gilt für alle fünf mitgelieferten Regeln.
 <span id="hidden-losses"></span>
 ## Verdeckte Verluste und Vergleich der Regeln
 
-`marginalisation_count()` in `R/fairness_screen.R` zählt mit drei Zeilen:
+`marginalisation_count()` in `R_functions/fairness_screen.R` zählt mit drei Zeilen:
 
-<!-- from R/fairness_screen.R -->
+<!-- from R_functions/fairness_screen.R -->
 ```r
 below <- do.call(cbind, lapply(nb_list, function(x) x[, d] < 0))
 gain <- value[, d] > 0                   # W(NB(d, theta_s)) > 0
@@ -763,9 +762,9 @@ Wo das Modell eigentlich eine exakte Null liefert, muss man das beim Lesen erkl�
 <span id="units"></span>
 ## Berichtseinheiten
 
-In `R/reporting_units.R` ist eine Berichtseinheit eine gewichtete Summe ganzer Matrizen:
+In `R_functions/reporting_units.R` ist eine Berichtseinheit eine gewichtete Summe ganzer Matrizen:
 
-<!-- from R/reporting_units.R -->
+<!-- from R_functions/reporting_units.R -->
 ```r
 terms <- Map(function(x, coefficient) coefficient * x,
               nb_list[names(coefficients)], coefficients)
@@ -826,7 +825,7 @@ Gerechnet wird weder `6 + 1` noch ein Geldwert der Stunde; zum Bewerten wählt m
 <span id="references"></span>
 ## Referenzen vergleichen
 
-`baseline_pair()` in `R/baseline_pair.R` bekommt eine kleine Funktion, die zu jeder Referenz die passenden Nettovorteile liefert, und ruft sie genau zweimal auf.
+`baseline_pair()` in `R_functions/baseline_pair.R` bekommt eine kleine Funktion, die zu jeder Referenz die passenden Nettovorteile liefert, und ruft sie genau zweimal auf.
 Sie erfindet keinen Referenzwert und zieht keine Referenz ein zweites Mal ab.
 
 <!-- eq-reference -->
@@ -873,7 +872,7 @@ Mittel, Informationswerte oder Verluste können sich trotzdem ändern.
 <span id="fidelity"></span>
 ## Umsetzungstreue: wie viel der Wirkung ankommen muss
 
-`fidelity_threshold()` in `R/fidelity_threshold.R` skaliert nur die gerade geprüfte Option mit einem Anteil f; die Alternativen behalten ihre volle Wirkung.
+`fidelity_threshold()` in `R_functions/fidelity_threshold.R` skaliert nur die gerade geprüfte Option mit einem Anteil f; die Alternativen behalten ihre volle Wirkung.
 `mean(rule_by_draw(f * groups, p, W))` ist der Wert der Option beim Anteil f.
 
 <!-- eq-fidelity -->
@@ -935,7 +934,7 @@ Das ist eine Aussage über die Ungleichung, keine Empfehlung, eine Maßnahme ohn
 Ebenso verspricht ein Atkinson-Schwellenwert bei einem inneren Maximum nicht, dass alle größeren Anteile reichen.
 
 Diese Funktion skaliert die ganze Nettowirkung einer Option.
-Wer einzelne Bestandteile einer Maßnahme getrennt variieren will, braucht einen eigenen Modelllauf, im Atacora-Fall in `atacora_DA_axes_full.R`.
+Wer einzelne Bestandteile einer Maßnahme getrennt variieren will, braucht einen eigenen Modelllauf, es sei denn, das Modell ist in diesem Bestandteil linear: Dann genügen seine beiden Enden, wie bei der inklusiven Regel im Atacora-Screen (`rule_threshold`).
 
 **Für eigene Regeln.** Die Suche setzt voraus, dass $V_d(f)$ zwischen 0 und 1 endlich, stetig und konkav ist.
 Das gilt für die utilitaristische Regel, Maximin, die prioritäre Regel mit einem Verlustfaktor von mindestens 1 und Atkinson im positiven Bereich.
@@ -945,7 +944,7 @@ Bei einer eigenen Transformation muss man das selbst prüfen; die Mindestgrenze 
 <span id="decisionsupport"></span>
 ## Anschluss an decisionSupport
 
-`nb_from_mc()` in `R/nb_from_mc.R` liest `mc$y`, so wie `mcSimulation()` es liefert.
+`nb_from_mc()` in `R_functions/nb_from_mc.R` liest `mc$y`, so wie `mcSimulation()` es liefert.
 Ein Spaltenmuster, die Gruppen und die Optionen reichen.
 `decisionSupport::multi_EVPI()` misst einen anderen Informationswert als `voi_partition()`; [Schritt 11](#step-11) zeigt den Unterschied.
 
@@ -984,7 +983,7 @@ Es fragt, was perfekte Kenntnis der unsicheren Eingaben für diese Entscheidung 
 \mathrm{EVPI}_j = \mathbb{E}_{\theta_j}\Big[\max\big(\mathbb{E}(\Delta \mid \theta_j),\,0\big)\Big] - \max\big(\mathbb{E}\,\Delta,\,0\big).
 ```
 
-$\Delta$ ist der Unterschied der zwei Optionen je Ziehung, in `examples/partial_information.R` die Spalte `comparison`.
+$\Delta$ ist der Unterschied der zwei Optionen je Ziehung, in `R_model/atacora_DA_partial_evpi.R` die Spalte `comparison`.
 $\theta_j$ ist die Eingabe $j$; `multi_EVPI()` rechnet diesen Wert für jede Eingabe.
 
 Unser Beispiel zeigt, wie stark die Optionsmenge zählt:
@@ -1001,7 +1000,7 @@ Erst `dY` schafft Ziehungen, in denen man anders entscheiden möchte.
 Ein EVPI von null für ein Optionspaar passt deshalb zu einem positiven EVPI für alle Optionen.
 Zu jedem Informationswert gehören Ergebnisgröße, Optionsmenge und Umfang der Information.
 
-[`examples/partial_information.R`](examples/partial_information.R) verbindet beides: Es bildet ein ausdrücklich benanntes Optionspaar, ruft `multi_EVPI()` auf und berichtet, wie oft eine ausgelassene Option besser wäre.
+[`R_model/atacora_DA_partial_evpi.R`](R_model/atacora_DA_partial_evpi.R) verbindet beides: Es bildet ein ausdrücklich benanntes Optionspaar, ruft `multi_EVPI()` auf und berichtet, wie oft eine ausgelassene Option besser wäre.
 
 <span id="full-run"></span>
 ## Vollständiger Durchlauf
@@ -1210,32 +1209,34 @@ Damit sind alle 16 Funktionen verwendet.
 <span id="atacora"></span>
 ## Von den vier Ziehungen zu einem echten Modell: der Atacora-Screen
 
-`atacora_DA_axes.R` wendet dieselben Funktionen auf das Atacora-Modell an (`atacora_DA_model.R`).
+`R_model/atacora_DA_axes.R` wendet dieselben Funktionen auf das Atacora-Modell an (`R_model/atacora_DA_model.R`).
 Das Modell vergleicht für die Fonio-Verarbeitung im Atacora, Nordbenin, fünf Optionen: `sq` nichts ändern, `out` Verarbeitungsmaschinen, `up_std` und `up_inc` einen nationalen Fonio-Plan mit zwei Regeln für die Betreibermarge und `deep` eine Ernährungskampagne.
 Konten gibt es für den Produzentenhaushalt (G), die Frauen darin (Wg), bezahlte Huller (H), den Maschinenbetreiber (O) und die Kommune (`comm`).
-Der Screen liest die 10 000 gespeicherten Ziehungen, die `atacora_DA_run.R` schreibt, hat unter 100 Zeilen und schreibt keine Dateien.
+Der Screen liest die 10 000 gespeicherten Ziehungen, die `R_model/atacora_DA_model.R` schreibt, hat unter 100 Zeilen und schreibt keine Dateien.
 Er gibt keine Empfehlung für Atacora: Jedes Ergebnis gilt unter den Annahmen der Eingabetabelle.
 
 ```r
-source("atacora_DA_axes.R")
+source("R_model/atacora_DA_axes.R")
 screen$fairness                # which rule prefers which option
 screen$designs                 # up_std against up_inc, not against the status quo
 screen$references$outcomes     # every group under both reference conditions
 screen$floor                   # which options leave no group worse off in any draw
 screen$hidden$out              # aggregate gain while a group loses
 screen$heterogeneity           # differentiated decisions for household types
+screen$eaten_voi               # which option leads on kg eaten at home; EVPI in kg
+screen$rule_threshold          # enforcement of the inclusive rule at which hullers break even on average
 ```
 
 Das ganze Skript:
 
 ```r
-# FIVE AXES + FIDELITY. Run from the project root; results are in 'screen'.
+# FIVE AXES, AN OUTCOME BEYOND MONEY, FIDELITY. Run from the project root; results are in 'screen'.
 
 # Uses the existing 10,000 draws (seed 20260927); no new simulation or file writes.
 source("load.R", local = TRUE)
-if (!file.exists("outputs/v9/simulation_results.rds"))
-  stop("Run atacora_DA_run.R first (about 25 minutes); it writes outputs/v9/simulation_results.rds.", call. = FALSE)
-simulation_results <- readRDS("outputs/v9/simulation_results.rds")
+if (!file.exists("outputs/simulation_results.rds"))
+  stop("Run R_model/atacora_DA_model.R first; it writes outputs/simulation_results.rds.", call. = FALSE)
+simulation_results <- readRDS("outputs/simulation_results.rds")
 options <- c("sq", "out", "up_std", "up_inc", "deep")
 nb <- function(groups, setting = "V1", prefix = "NB")
   nb_from_mc(simulation_results, paste0(prefix, "_{group}_{option}_", setting), groups, options)
@@ -1278,6 +1279,7 @@ names(hidden) <- options[-1L]
 people <- nb(c("G", "H"))
 fairness <- fairness_screen(people, p, rules)
 designs <- fairness_screen(lapply(people, function(x) x[, c("up_std", "up_inc")]), p, rules)
+# The designs differ only in who gets the operator margin: utilitarian totals are equal, its option is a tie.
 floor_by_group <- nb_summary(nb(c("G", "Wg", "H")))[, c("unit", "option", "p_loss")]
 floor <- data.frame(option = options, admissible = vapply(options, function(d)
   all(floor_by_group$p_loss[floor_by_group$option == d] == 0), logical(1)))
@@ -1298,14 +1300,25 @@ heterogeneity <- voi_partition(types, p = c(1, 1), W = function(nb, p) sum(nb),
   differentiated = TRUE, profiles = allowed)
 heterogeneity_ratio <- voh_index(heterogeneity)
 
-# ACROSS DIRECTIONS: scalar effect fidelity; component-specific delivery needs a rerun.
+# BEYOND MONEY (H3): kg of fonio eaten at home over ten years, change against the status quo, per household.
+eaten <- list(kg = sapply(options, function(d) simulation_results$y[[paste0("Kg_eaten_", d)]]))
+eaten_share <- colMeans(eaten$kg) / mean(simulation_results$y$Lvl_kg_eaten_sq)   # change as a share of today's level
+eaten_voi <- voi_partition(eaten, p = 1, W = w_utilitarian())                    # option ahead on this aim; EVPI in kg
+# An explicit rule across aims: a kg eaten at home valued at 1.5 times its price (V1 values it at 1).
+kg_value <- sapply(options, function(d) simulation_results$y[[paste0("C_G_kg_", d)]])   # FCFA, at the price
+kappa_15 <- voi_partition(list(G = nb("G")$G + 0.5 * kg_value), p = 1, W = w_utilitarian())   # option ahead, p_ahead
+
+# ACROSS DIRECTIONS: fidelity_threshold() scales the whole effect of each option for the commune.
 fidelity <- fidelity_threshold(nb("comm"), p = 1, W = w_utilitarian())
+# The rule alone: up_std is up_inc without its rule (machines in full); the model is linear in between.
+rule_threshold <- -mean(people$H[, "up_std"]) / diff(colMeans(people$H[, c("up_std", "up_inc")]))[[1]]  # H mean = 0
 screen <- list(settings = list(seed = 20260927, draws = nrow(simulation_results$y),
   K = K, p = p, atkinson_offset = offset, rules = names(rules)), boundary = boundary,
   references = references, units = units, hidden = hidden, fairness = fairness,
   designs = designs, floor_by_group = floor_by_group, floor = floor,
   information = information, heterogeneity = heterogeneity,
-  heterogeneity_ratio = heterogeneity_ratio, fidelity = fidelity)
+  heterogeneity_ratio = heterogeneity_ratio, eaten = eaten, eaten_share = eaten_share,
+  eaten_voi = eaten_voi, kappa_15 = kappa_15, fidelity = fidelity, rule_threshold = rule_threshold)
 print(screen$fairness)
 ```
 
@@ -1345,10 +1358,17 @@ Beide kommen aus denselben Ziehungen; sie unterscheiden sich darin, wie die frei
 
 **4. Regel.** Sechs Regeln für alle Optionen und eigens für die zwei Varianten des Plans.
 Die Mindestgrenze ist hier eine Zulässigkeitsprüfung: Zulässig ist eine Option, wenn keine Gruppe in irgendeiner Ziehung verliert.
+Die beiden Designs unterscheiden sich nur darin, wer die Marge des Betreibers erhält; die utilitaristische Regel gibt beiden deshalb denselben Wert.
+Die Option, die sie in `designs` zeigt, ist die erste eines Gleichstands, den Rundungsreste entscheiden, keine Präferenz.
 
 **5. Informationswert.** Der EVPI steht je Akteur (Wg, H, G, Kommune) unter V0, V1 und PREF.
 Getrennte Entscheidungen gibt es nur für Haushaltstypen (`self`, `hire`), nicht für Mitglieder eines Haushalts; die erlaubten Profile stehen in `allowed`.
 Die Beiträge der Typen sind schon mit ihrem Anteil je Ziehung gewichtet; die Summenregel berichtet deshalb FCFA je Produzentenhaushalt.
 
+**Über Geld hinaus.** Die zu Hause gegessenen Kilogramm Fonio bleiben eine eigene Ergebnisgröße neben Geld.
+`voi_partition()` mit der utilitaristischen Regel nennt die Option, die bei diesem Ziel vorne liegt, und gibt den Informationswert in Kilogramm; `eaten_share` setzt die Änderung ins Verhältnis zum heutigen Niveau.
+`kappa_15` ergänzt eine ausdrückliche Regel zwischen den Zielen: Ein zu Hause gegessenes Kilogramm zählt das 1,5-Fache seines Preises statt einmal.
+
 **Über alle Richtungen: Umsetzungstreue.** `fidelity_threshold()` skaliert die ganze Nettowirkung jeder Option für die Kommune.
-Bestandteile einer Maßnahme getrennt zu variieren braucht einen neuen Modelllauf.
+Die inklusive Regel ist die Ausnahme: Das Modell ist in ihrer Durchsetzung linear, und das Standarddesign ist der Plan ohne sie.
+`rule_threshold` findet deshalb allein aus den beiden Designs die Durchsetzung, bei der der Mittelwert der Huller null erreicht.
