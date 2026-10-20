@@ -69,5 +69,3 @@ One row per uncertain input: distribution, lower and upper bound, label, descrip
 ## Author and licence
 
 Daniel Rozeik, University of Bonn. 
-
-(Add a license and citable archived version when publishing)
