@@ -69,3 +69,4 @@ One row per uncertain input: distribution, lower and upper bound, label, descrip
 ## Author and licence
 
 Daniel Rozeik, University of Bonn. 
+Copyright (C) 2026 Daniel Rozeik. Licensed under the GNU General Public License v3.0, the same license as decisionSupport (see LICENSE).
